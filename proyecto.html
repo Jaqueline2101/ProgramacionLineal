@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Programación Lineal - Paso a Paso</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+  <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+  <link rel="stylesheet" href="css/estilos.css">
+  <script src="js/script.js"></script>
+</head>
+<body>
+
+<div class="container py-5">
+  <div class="card shadow rounded-4 px-4 py-4 mx-auto" style="max-width: 1200px;">
+
+    <div class="container-fluid py-4">
+      <div class="text-center mb-4">
+        <h1 class="display-5 fw-bold text-primary">Sitema para Resolver Programacion Lineal</h1>
+        <p class="lead text-muted">J.H.CC</p>
+      </div>
+
+      <!-- PASO 1: CONFIGURACIÓN -->
+      <div class="card section-card">
+        <div class="card-header">
+          <h4 class="mb-0 text-center"><i class="bi bi-gear-fill me-2"></i>Paso 1: Configuración del Modelo</h4>
+        </div>
+        <div class="card-body">
+          <div class="row g-4">
+            <div class="col-md-6">
+              <div class="config-card">
+                <h6 class="mb-3">Método a Utilizar</h6>
+                <div class="btn-group w-100">
+                  <button class="btn active-method" id="btnGrafico" onclick="setMetodo('grafico')">Gráfico</button>
+                  <button class="btn inactive-method" id="btnSimplex" onclick="setMetodo('simplex')">Simplex</button>
+                </div>
+                <p class="text-muted small mt-2">Gráfico para 2 variables, Simplex para más</p>
+              </div>
+            </div>
+            <div class="col-md-6">
+              <div class="config-card">
+                <h6 class="mb-3">Tipo de Optimización</h6>
+                <div class="btn-group w-100">
+                  <button class="btn active-method" id="btnMaximizar" onclick="setOptimizacion('max')">Maximizar</button>
+                  <button class="btn inactive-method" id="btnMinimizar" onclick="setOptimizacion('min')">Minimizar</button>
+                </div>
+                <p class="text-muted small mt-2">Seleccionar el objetivo de optimización</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Definición de Variables y Restricciones -->
+          <div class="row mt-4">
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h6 class="mb-0"><i class="bi bi-list-ul me-2"></i>Variables</h6>
+                </div>
+                <div class="card-body">
+                  <div id="variablesNombres">
+                    <div class="row mb-2 align-items-center">
+                      <div class="col-3">
+                        <span class="badge bg-primary">X0</span>
+                      </div>
+                      <div class="col-9">
+                        <input type="text" class="form-control form-control-sm" 
+                               placeholder="Descripcion de la variable" 
+                               id="nombre_x0" value="">
+                      </div>
+                    </div>
+                    <div class="row mb-2 align-items-center">
+                      <div class="col-3">
+                        <span class="badge bg-primary">X1</span>
+                      </div>
+                      <div class="col-9">
+                        <input type="text" class="form-control form-control-sm" 
+                               placeholder="Descripcion de la variable" 
+                               id="nombre_x1" value="">
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <div class="card">
+                <div class="card-header">
+                  <h6 class="mb-0"><i class="bi bi-rulers me-2"></i>Restricciones</h6>
+                </div>
+                <div class="card-body">
+                  <div id="restriccionesNombres">
+                    <!-- Se llena dinámicamente -->
+                  </div>
+                  <div class="text-center mt-3">
+                    <button class="btn btn-outline-primary btn-sm" onclick="agregarRestriccion()">
+                      <i class="bi bi-plus-circle me-1"></i>+ Restricción
+                    </button>
+                    <button class="btn btn-outline-danger btn-sm ms-2" onclick="eliminarUltimaRestriccion()">
+                      <i class="bi bi-dash-circle me-1"></i>- Restricción
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 2: MODELO -->
+      <div class="card section-card">
+        <div class="card-header">
+          <h4 class="mb-0 text-center"><i class="bi bi-pencil-square me-2"></i>Paso 2: Definición del Modelo</h4>
+        </div>
+        <div class="card-body">
+          <!-- Referencias -->
+          <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Referencias y Ayuda</h6>
+              <button class="btn btn-success btn-sm" onclick="mostrarAyuda()">Ver Ayuda</button>
+            </div>
+            <div class="card-body" id="ayudaContainer" style="display: none;">
+              <div class="row">
+                <div class="col-md-6">
+                  <h6>Función Objetivo:</h6>
+                  <ul class="small">
+                    <li>Ingrese los coeficientes de cada variable</li>
+                    <li>Use valores positivos o negativos según corresponda</li>
+                    <li>El sistema optimizará automáticamente</li>
+                  </ul>
+                </div>
+                <div class="col-md-6">
+                  <h6>Restricciones:</h6>
+                  <ul class="small">
+                    <li>Cada restricción debe tener coeficientes y un valor límite</li>
+                    <li>Seleccione el tipo: ≤, =, o ≥</li>
+                    <li>Agregue tantas restricciones como necesite</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FUNCIÓN OBJETIVO -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h6 class="mb-0"><i class="bi bi-bullseye me-2"></i>Función Objetivo</h6>
+            </div>
+            <div class="card-body">
+              <div id="objetivoContainer" class="row g-2 align-items-center justify-content-center">
+                <!-- Se llena dinámicamente -->
+              </div>
+              <div class="text-center mt-3">
+                <button class="btn btn-outline-primary btn-sm" onclick="agregarVariable()">
+                  <i class="bi bi-plus-circle me-1"></i>+ Variable
+                </button>
+                <button class="btn btn-outline-danger btn-sm ms-2" onclick="eliminarVariable()">
+                  <i class="bi bi-dash-circle me-1"></i>- Variable
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- RESTRICCIONES -->
+          <div class="card">
+            <div class="card-header">
+              <h6 class="mb-0"><i class="bi bi-rulers me-2"></i>Restricciones</h6>
+            </div>
+            <div class="card-body">
+              <div id="restriccionesContainer">
+                <!-- Se llena dinámicamente -->
+              </div>
+            </div>
+          </div>
+
+          <div class="text-center mt-4">
+            <button class="btn btn-primary btn-lg btn-action" onclick="validarYContinuar()">
+              <i class="bi bi-play-circle me-1"></i>Resolver Problema
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- PASO 3: RESULTADOS -->
+      <div class="card section-card">
+        <div class="card-header">
+          <h4 class="mb-0 text-center"><i class="bi bi-graph-up me-2"></i>Paso 3: Resultados</h4>
+        </div>
+        <div class="card-body">
+          <!-- Resultado Óptimo Principal -->
+          <div class="card mb-4">
+            <div class="card-body text-center py-4">
+              <h5 class="mb-3 text-primary">
+                <i class="bi bi-trophy-fill me-2"></i>
+                El resultado óptimo de la función objetivo es: 
+                <span id="resultadoOptimo" class="fw-bold text-success fs-4">0</span>
+              </h5>
+            </div>
+          </div>
+
+          <!-- Gráfico -->
+          <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h6 class="mb-0"><i class="bi bi-graph-up me-2"></i>Gráfico:</h6>
+              <button class="btn btn-outline-success btn-sm" onclick="toggleSombra()">
+                <i class="bi bi-eye me-1"></i>Ver Sombra de las Restricciones
+              </button>
+            </div>
+            <div class="card-body">
+              <div id="grafico" style="width: 100%; height: 400px;"></div>
+            </div>
+          </div>
+
+          <!-- Referencias -->
+          <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+              <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Referencias</h6>
+              <button class="btn btn-outline-info btn-sm" onclick="mostrarReferencias()">
+                <i class="bi bi-eye me-1"></i>Ver referencias
+              </button>
+            </div>
+            <div class="card-body">
+
+              
+              <!-- Esta parte SÍ se puede ocultar -->
+              <div id="referenciasContainer" style="display: block;">
+                <hr>
+                <div class="table-responsive">
+                  <table class="table table-bordered table-sm">
+                    <thead class="table-light">
+                      <tr>
+                        <th class="text-center">Punto</th>
+                        <th class="text-center">Resultado</th>
+                        <th class="text-center">X0</th>
+                        <th class="text-center">X1</th>
+                        <th class="text-center">S0</th>
+                        <th class="text-center">S1</th>
+                      </tr>
+                    </thead>
+                    <tbody id="tablaReferencias">
+                      <tr class="table-success fw-bold">
+                        <td class="text-center">P-0 - ÓPTIMO</td>
+                        <td class="text-center">2600.00</td>
+                        <td class="text-center">20.00</td>
+                        <td class="text-center">60.00</td>
+                        <td class="text-center">0.00</td>
+                        <td class="text-center">0.00</td>
+                      </tr>
+                      <tr>
+                        <td class="text-center">P-1</td>
+                        <td class="text-center">2000.00</td>
+                        <td class="text-center">50.00</td>
+                        <td class="text-center">0.00</td>
+                        <td class="text-center">0.00</td>
+                        <td class="text-center">30.00</td>
+                      </tr>
+                      <tr>
+                        <td class="text-center">P-2</td>
+                        <td class="text-center">2400.00</td>
+                        <td class="text-center">0.00</td>
+                        <td class="text-center">80.00</td>
+                        <td class="text-center">20.00</td>
+                        <td class="text-center">0.00</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Análisis de Sensibilidad -->
+          <div class="card mb-4">
+            <div class="card-header">
+              <h6 class="mb-0"><i class="bi bi-graph-down me-2"></i>Análisis de Sensibilidad</h6>
+            </div>
+            <div class="card-body">
+              <div id="analisisSensibilidad">
+                <div class="row">
+                  <div class="col-md-6">
+                    <h6 class="text-primary">Variables de Decisión:</h6>
+                    <ul class="list-unstyled small">
+                      <li><strong>X0:</strong> Rango de optimalidad: [15, 35]</li>
+                      <li><strong>X1:</strong> Rango de optimalidad: [45, 75]</li>
+                    </ul>
+                  </div>
+                  <div class="col-md-6">
+                    <h6 class="text-primary">Restricciones:</h6>
+                    <ul class="list-unstyled small">
+                      <li><strong>R0:</strong> Precio sombra: 12.50</li>
+                      <li><strong>R1:</strong> Precio sombra: 8.75</li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Botones de Acción -->
+          <div class="text-center mt-4 no-print">
+            <button class="btn btn-success me-2 btn-action" onclick="imprimirResultados()">
+              <i class="bi bi-printer me-1"></i>Imprimir
+            </button>
+            <button class="btn btn-info me-2 btn-action" onclick="exportarResultados()">
+              <i class="bi bi-download me-1"></i>Exportar
+            </button>
+            <button class="btn btn-primary btn-action" onclick="nuevoProblema()">
+              <i class="bi bi-arrow-clockwise me-1"></i>Nuevo Problema
+            </button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/script.js"></script>
+
+  </div> <!-- Cierra .card -->
+</div>   <!-- Cierra .container -->
+
+</body>
+</html>
